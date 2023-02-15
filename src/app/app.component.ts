@@ -1,3 +1,4 @@
+import { JsonPipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Todo } from 'src/models/todo.model';
@@ -8,6 +9,7 @@ import { Todo } from 'src/models/todo.model';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+  public mode: string = 'list';
   public todos: Todo[] = [];
   public title: String = 'Minhas tarefas';
   public form: FormGroup;
@@ -20,9 +22,8 @@ export class AppComponent {
         Validators.required
       ])]
     });
-    this.todos.push(new Todo('Passear com o cachorro', false, 1));
-    this.todos.push(new Todo('Ir ao supermercado', false, 2));
-    this.todos.push(new Todo('Cortar o cabelo', true, 3));
+
+    this.load();
   }
 
   remove(todo: Todo) {
@@ -30,12 +31,44 @@ export class AppComponent {
     if (index !== -1) {
       this.todos.splice(index, 1);
     }
+    this.save();
   }
 
   markAsDone(todo: Todo) {
     todo.done = true;
+    this.save();
   }
   markAsUndone(todo: Todo) {
     todo.done = false;
+    this.save();
+  }
+
+  add() {
+    const title = this.form.controls['title'].value;
+    const id = this.todos.length + 1;
+    this.todos.push(new Todo(title, false, id));
+    this.save();
+    this.clear();
+  }
+  clear() {
+    this.form.reset();
+  }
+
+  save() {
+    const data = JSON.stringify(this.todos);
+    localStorage.setItem('todos', data);
+    this.mode = 'list';
+  }
+
+  load() {
+    const data = localStorage.getItem('todos');
+    if (data) {
+      this.todos = JSON.parse(data);
+    } else {
+      this.todos = [];
+    }
+  }
+  changeMode(mode: string) {
+    this.mode = mode;
   }
 }
